@@ -173,3 +173,7 @@ npm run test:watch
 ## License
 
 Distributed under the MIT License.
+
+---
+**Made with ❤️ in Sri Lanka**
+```
