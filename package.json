@@ -1,0 +1,30 @@
+{
+  "name": "lanka-validator",
+  "version": "1.0.0",
+  "description": "Lanka-Validator is a framework-agnostic JavaScript/TypeScript utility library designed to simplify the validation and extraction of Sri Lankan-specific data formats. This includes National Identity Card (NIC) numbers, mobile phone numbers, vehicle registration numbers, and currency-to-word conversions.",
+  "license": "MIT",
+  "author": "chamodya_Ganegamage",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
