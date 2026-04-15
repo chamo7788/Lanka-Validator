@@ -1,5 +1,5 @@
 {
-  "name": "lanka-validator",
+  "name": "@chamo7788/lanka-validator",
   "version": "1.0.0",
   "description": "Lanka-Validator is a framework-agnostic JavaScript/TypeScript utility library designed to simplify the validation and extraction of Sri Lankan-specific data formats. This includes National Identity Card (NIC) numbers, mobile phone numbers, vehicle registration numbers, and currency-to-word conversions.",
   "license": "MIT",
@@ -10,6 +10,13 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chamo7788/Lanka-Validator.git"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
