@@ -1,242 +1,140 @@
 # Lanka Validator
 
-A framework-agnostic JavaScript/TypeScript utility library for validating and extracting Sri Lankan-specific data formats.
+[![NPM Version](https://img.shields.io/npm/v/lanka-validator.svg)](https://www.npmjs.com/package/lanka-validator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Features
+Lanka Validator is a lightweight, framework-agnostic utility library built to handle Sri Lankan data formats. Whether you are building an e-commerce checkout, a KYC pipeline, or a simple contact form, this library helps keep your input data accurate and standardized.
 
-- Validate and decode Sri Lankan NIC numbers (old and new formats)
-- Extract NIC metadata:
-  - NIC type (`Old` or `New`)
-  - Gender (`Male` or `Female`)
-  - Date of birth
-  - Voter status for old NIC format (`V` or `X`)
-- Validate and normalize Sri Lankan mobile numbers
-  - Accepts local (`07XXXXXXXX`), international (`947XXXXXXXX`), and plus format (`+947XXXXXXXX`)
-  - Outputs normalized `+94` format
-- Detect mobile network provider from number prefix
-  - Dialog, Mobitel, Hutch, Airtel
-- Validate Sri Lankan vehicle registration numbers
-  - Modern format with province code (e.g., `WP CAB-1234`, `CP JS-5678`)
-  - Old 2-letter format (e.g., `KA-1234`)
-- TypeScript-first with exported types
-- Tested with Vitest
+---
 
-## Installation
+## Key Features
+
+- Smart NIC Decoding: Supports both old (9-digit + suffix) and new (12-digit) formats.
+- Information Extraction: Retrieves birthday, gender, NIC type, and voter flag for old NIC values.
+- Mobile Normalization: Standardizes valid Sri Lankan mobile numbers to international `+94` format.
+- Carrier Detection: Identifies providers (Dialog, Mobitel, Hutch, Airtel) from prefixes.
+- Vehicle Plate Validation: Supports modern province-based and old vehicle number formats.
+- Fully Typed: First-class TypeScript support for a safer developer experience.
+- Ultra Lightweight: No runtime dependencies.
+
+---
+
+## Quick Start
+
+### Installation
 
 ```bash
 npm install lanka-validator
 ```
 
-## Quick Start
+### Basic Usage
 
 ```ts
 import { NIC, Mobile, Vehicle } from 'lanka-validator';
 
-const nic = NIC.decode('901231234V');
-const normalizedMobile = Mobile.format('0771234567');
-const provider = Mobile.getProvider('+94771234567');
-const plate = Vehicle.validate('WP CAB-1234');
+// NIC decoding
+const nicInfo = NIC.decode('951234567V');
+// { isValid: true, type: 'Old', gender: 'Male', birthday: Date(...), isVoter: true }
 
-console.log({ nic, normalizedMobile, provider, plate });
+// Mobile formatting and provider detection
+const formatted = Mobile.format('0771234567'); // "+94771234567"
+const network = Mobile.getProvider('0771234567'); // "Dialog"
+
+// Vehicle validation
+const car = Vehicle.validate('WP CAB-1234');
+// { isValid: true, province: 'WP', number: '1234' }
 ```
 
-## API Reference
+---
 
-### NIC
+## Detailed API Reference
 
-#### `NIC.decode(nic: string): NICDecodeResult`
+### 1. National Identity Card (NIC)
 
-Validates and decodes old/new NIC values.
+The `NIC` module handles date decoding, leap-year validation, and the gender offset rule (`+500` day component).
+
+| Method | Input | Returns |
+| :--- | :--- | :--- |
+| `decode(nic)` | `string` | `NICDecodeResult` |
 
 Supported formats:
-- Old NIC: `123456789V` / `123456789X`
-- New NIC: `200012300123` (12 digits)
 
-Returns:
-- `isValid: true`
-- `type: 'Old' | 'New'`
-- `gender: 'Male' | 'Female'`
-- `birthday: Date`
-- `isVoter?: boolean` (only for old NIC)
+- Old: `951234567V` / `951234567X`
+- New: `199512304567` (12 digits)
 
-Throws errors:
+Errors:
+
 - `Invalid NIC Format`
 - `Invalid NIC day component`
 - `Invalid NIC date component`
 
-Example:
+---
 
-```ts
-import { NIC } from 'lanka-validator';
+### 2. Mobile Numbers
 
-const result = NIC.decode('925781234X');
+Use these methods to clean user input and identify carriers.
 
-// {
-//   isValid: true,
-//   type: 'Old',
-//   gender: 'Female',
-//   birthday: Date(...),
-//   isVoter: false
-// }
-console.log(result);
-```
+| Method | Input | Returns |
+| :--- | :--- | :--- |
+| `format(phone)` | `string` | Normalized `+947XXXXXXXX` |
+| `getProvider(phone)` | `string` | `Dialog` \| `Mobitel` \| `Hutch` \| `Airtel` |
 
-### Mobile
+Carrier prefix map:
 
-#### `Mobile.format(phoneNumber: string): string`
+- `070`, `071` -> Mobitel
+- `076`, `077` -> Dialog
+- `072`, `078` -> Hutch
+- `075` -> Airtel
 
-Normalizes valid Sri Lankan mobile numbers to international `+94` format.
+Errors:
 
-Accepted inputs:
-- `0771234567`
-- `94771234567`
-- `+94771234567`
-
-Throws errors:
-- `Invalid mobile number format`
-- `Invalid Sri Lankan mobile number`
-
-Example:
-
-```ts
-import { Mobile } from 'lanka-validator';
-
-console.log(Mobile.format('0771234567'));   // +94771234567
-console.log(Mobile.format('94771234567'));  // +94771234567
-console.log(Mobile.format('+94771234567')); // +94771234567
-```
-
-#### `Mobile.getProvider(phoneNumber: string): MobileProvider`
-
-Returns provider by prefix.
-
-Provider mapping:
-- `070`, `071` -> `Mobitel`
-- `072`, `078` -> `Hutch`
-- `075` -> `Airtel`
-- `076`, `077` -> `Dialog`
-
-Throws errors:
 - `Invalid mobile number format`
 - `Invalid Sri Lankan mobile number`
 - `Unsupported mobile prefix`
 
-Example:
+---
 
-```ts
-import { Mobile } from 'lanka-validator';
+### 3. Vehicle Numbers
 
-console.log(Mobile.getProvider('0771234567'));  // Dialog
-console.log(Mobile.getProvider('0711234567'));  // Mobitel
-console.log(Mobile.getProvider('+94781234567')); // Hutch
-console.log(Mobile.getProvider('0751234567'));  // Airtel
-```
+Validates plate format and extracts province and number.
 
-### Vehicle
+Example formats:
 
-#### `Vehicle.validate(plateNumber: string): VehicleValidationResult`
-
-Validates vehicle plate formats and returns parsed details.
-
-Supported formats:
-- Modern: `<PROVINCE> <SERIES>-<4DIGITS>`
-  - Province codes: `WP`, `CP`, `SP`, `NP`, `EP`, `NW`, `NC`, `UV`, `SG`
-  - Series: 2 or 3 letters
-  - Example: `WP CAB-1234`, `CP JS-5678`
-- Old format: `<2LETTERS>-<4DIGITS>`
-  - Example: `KA-1234`
+- `WP CAB-1234` (modern province-based)
+- `KA-1234` (old format)
 
 Returns:
-- Valid modern:
-  - `{ isValid: true, province: 'WP', number: '1234' }`
-- Valid old:
-  - `{ isValid: true, province: '', number: '1234' }`
-- Invalid:
-  - `{ isValid: false, province: '', number: '' }`
 
-Example:
+- Valid modern: `{ isValid: true, province: 'WP', number: '1234' }`
+- Valid old: `{ isValid: true, province: '', number: '1234' }`
+- Invalid: `{ isValid: false, province: '', number: '' }`
 
-```ts
-import { Vehicle } from 'lanka-validator';
+---
 
-console.log(Vehicle.validate('WP CAB-1234'));
-console.log(Vehicle.validate('CP JS-5678'));
-console.log(Vehicle.validate('KA-1234'));
-console.log(Vehicle.validate('XX CAB-1234')); // invalid
-```
+## Real-World Example
 
-## Example Use Cases
-
-### 1. Sign-up form validation
+### Sign-up Form Validation (React/Node.js)
 
 ```ts
 import { NIC, Mobile } from 'lanka-validator';
 
-function validateSignupInput(input: { nic: string; mobile: string }) {
-  const nic = NIC.decode(input.nic);
-  const mobile = Mobile.format(input.mobile);
-  const provider = Mobile.getProvider(input.mobile);
+const handleSubmit = (data: { phone: string; nic: string }) => {
+  try {
+    const validMobile = Mobile.format(data.phone);
+    const nicDetails = NIC.decode(data.nic);
 
-  return {
-    nic,
-    mobile,
-    provider,
-  };
-}
-```
-
-### 2. KYC preprocessing pipeline
-
-```ts
-import { NIC } from 'lanka-validator';
-
-function buildKycRecord(nicValue: string) {
-  const decoded = NIC.decode(nicValue);
-
-  return {
-    nicType: decoded.type,
-    gender: decoded.gender,
-    birthDateISO: decoded.birthday.toISOString().slice(0, 10),
-    isVoter: decoded.isVoter ?? null,
-  };
-}
-```
-
-### 3. Logistics or fleet intake
-
-```ts
-import { Vehicle } from 'lanka-validator';
-
-function acceptVehicle(plate: string) {
-  const result = Vehicle.validate(plate);
-  if (!result.isValid) {
-    throw new Error('Vehicle number is invalid');
+    // Proceed with sanitized data
+    console.log('Verified User:', {
+      phone: validMobile,
+      dob: nicDetails.birthday,
+    });
+  } catch (error) {
+    alert('Please check your Sri Lankan identity details!');
   }
-
-  return {
-    plate,
-    province: result.province || 'N/A',
-    number: result.number,
-  };
-}
+};
 ```
 
-### 4. Mobile provider analytics
-
-```ts
-import { Mobile } from 'lanka-validator';
-
-function summarizeByProvider(numbers: string[]) {
-  const counts: Record<string, number> = {};
-
-  for (const number of numbers) {
-    const provider = Mobile.getProvider(number);
-    counts[provider] = (counts[provider] ?? 0) + 1;
-  }
-
-  return counts;
-}
-```
+---
 
 ## Exported Types
 
@@ -250,15 +148,28 @@ import type {
 } from 'lanka-validator';
 ```
 
-## Development
+---
+
+## Development and Testing
+
+This project uses Vitest for test coverage of validation logic.
 
 ```bash
+# Install dependencies
 npm install
+
+# Build package
 npm run build
+
+# Run tests
 npm test
+
+# Watch mode
 npm run test:watch
 ```
 
+---
+
 ## License
 
-MIT
+Distributed under the MIT License.
